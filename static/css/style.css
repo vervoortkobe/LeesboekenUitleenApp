@@ -42,7 +42,10 @@ footer {
   text-align: center;
   margin-top: 20px;
   color: #666;
+  height: 20px;
 }
+
+/* Hoogte voor consistentie */
 
 /* Formulieren en Knoppen */
 .toolbar {
@@ -54,14 +57,15 @@ footer {
   margin-bottom: 20px;
 }
 
-.search-form,
 .add-form {
   display: flex;
   gap: 5px;
+  align-items: center;
 }
 
 input[type="text"],
-input[type="date"] {
+input[type="date"],
+input[type="search"] {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -100,6 +104,37 @@ button:hover {
   font-size: 0.8em;
 }
 
+/* Bredere input voor boektitel */
+.add-form input[name="titel"] {
+  width: 220px;
+}
+
+/* Stijlen voor de auto-zoekbalk */
+.search-form {
+  position: relative;
+}
+
+.search-form input[type="search"] {
+  padding-right: 25px;
+  width: 250px;
+}
+
+.search-reset {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 1.4em;
+  line-height: 1;
+  color: #888;
+  display: none;
+}
+
+.search-reset:hover {
+  color: #333;
+}
+
 /* Klassenpagina */
 details {
   border: 1px solid #ddd;
@@ -136,8 +171,14 @@ summary {
 }
 
 .add-form-inline {
-  margin-top: 10px;
+  margin-bottom: 15px;
+  /* Ruimte tussen het formulier en de lijst */
+  padding-bottom: 10px;
+  /* Extra ruimte onder het formulier */
+  border-bottom: 1px solid #eee;
+  /* Scheidingslijn */
 }
+
 
 /* Boekenpagina */
 .boek-item {
@@ -169,6 +210,11 @@ summary {
 
 .lees-lijst label {
   flex-grow: 1;
+}
+
+/* AANPASSING: Extra ruimte (padding) links van de boektitel */
+.lees-lijst .lees-item label {
+  padding-left: 10px;
 }
 
 .save-button {

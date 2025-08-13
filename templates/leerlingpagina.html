@@ -1,4 +1,4 @@
-<a href="/" class="back-link">&larr; Terug naar klassen</a>
+<a href="/klassen" class="back-link">&larr; Terug naar klassenoverzicht</a>
 <h2>Details voor {{.Leerling.Naam}}</h2>
 
 <form action="/leerling/aanpassen/{{.Leerling.ID}}" method="post" class="update-form">
@@ -8,16 +8,16 @@
   </div>
 
   <h3>Gelezen Boeken</h3>
-  <p>Voer een leesdatum in (JJJJ-MM-DD) en klik op 'Opslaan' onderaan de pagina.</p>
+  <p>Voer een leesdatum in en klik op 'Opslaan'. Een lege datum verwijdert de registratie.</p>
 
   <div class="boeken-container">
-    {{range .AviNiveaus}}
-    <details class="avi-groep" open>
-      <summary>
-        <h4>AVI-niveau: {{.}}</h4>
-      </summary>
+    <!-- AANPASSING: Gebruik $index om alleen de eerste 'details' open te klappen -->
+    {{range $index, $niveau := .AviNiveaus}}
+    <details class="avi-groep" {{if eq $index 0}}open{{end}}>
+      <!-- AANPASSING: <h4> vervangen door <span> voor consistente styling -->
+      <summary><span>AVI-niveau: {{$niveau}}</span></summary>
       <div class="lees-lijst">
-        {{range (index $.GroupedBoeken .)}}
+        {{range (index $.GroupedBoeken $niveau)}}
         <div class="lees-item">
           <label for="datum_{{.ID}}">{{.Titel}}</label>
           <input type="date" id="datum_{{.ID}}" name="datum_{{.ID}}" value="{{.Leesdatum}}">
