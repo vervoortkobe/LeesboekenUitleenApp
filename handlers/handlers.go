@@ -205,3 +205,19 @@ func (h *Handler) DeleteBoek(c *fiber.Ctx) error {
 	h.DB.Delete(&models.Boek{}, id)
 	return c.RedirectToRoute("boeken.index", fiber.Map{}) // CORRECTIE
 }
+
+func (h *Handler) UpdateBoek(c *fiber.Ctx) error {
+	id, _ := c.ParamsInt("id")
+	titel := c.FormValue("titel")
+	aviNiveau := c.FormValue("avi_niveau")
+
+	// Validatie: zorg ervoor dat de velden niet leeg zijn
+	if titel != "" && aviNiveau != "" {
+		h.DB.Model(&models.Boek{}).Where("id = ?", id).Updates(models.Boek{
+			Titel:     titel,
+			AviNiveau: aviNiveau,
+		})
+	}
+
+	return c.RedirectToRoute("boeken.index", fiber.Map{})
+}

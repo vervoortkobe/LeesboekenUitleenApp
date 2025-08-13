@@ -14,19 +14,23 @@
 </div>
 
 <div class="boeken-container" id="boeken-resultaten">
-  <!-- AANPASSING: Gebruik $index om alleen de eerste 'details' te openen -->
   {{range $index, $groep := .AviGroepen}}
   <details class="avi-groep" {{if eq $index 0}}open{{end}}>
-    <!-- AANPASSING: <h3> vervangen door <span> voor consistente stijl -->
     <summary><span>AVI-niveau: {{$groep.Niveau}}</span></summary>
     <div class="boeken-lijst">
       {{range $groep.Boeken}}
-      <div class="boek-item">
-        <span>{{.Titel}}</span>
-        <form action="/boek/verwijderen/{{.ID}}" method="post"
-          onsubmit="return confirm('Boek {{.Titel}} verwijderen?');">
-          <button type="submit" class="delete-sm">X</button>
-        </form>
+      <!-- AANPASSING: Elk boek-item krijgt een uniek ID -->
+      <div class="boek-item" id="boek-item-{{.ID}}">
+        <!-- Originele weergave van het boek -->
+        <span class="boek-title">{{.Titel}}</span>
+        <div class="actions">
+          <button class="edit-btn" data-id="{{.ID}}" data-titel="{{.Titel}}"
+            data-avi="{{.AviNiveau}}">Aanpassen</button>
+          <form action="/boek/verwijderen/{{.ID}}" method="post"
+            onsubmit="return confirm('Boek {{.Titel}} verwijderen?');">
+            <button type="submit" class="delete-sm">X</button>
+          </form>
+        </div>
       </div>
       {{end}}
     </div>
@@ -36,9 +40,11 @@
   {{end}}
 </div>
 
-<!-- Het JavaScript-blok blijft ongewijzigd -->
+<!-- Het bestaande JavaScript voor zoeken blijft, we voegen er een nieuw stuk aan toe -->
 <script>
+  // Bestaand zoek-script
   document.addEventListener('DOMContentLoaded', () => {
+    // ... (het volledige zoek-script van de vorige keer komt hier) ...
     const searchInput = document.getElementById('boeken-zoekbalk');
     const resetButton = document.getElementById('boeken-reset-btn');
     const resultsContainer = document.getElementById('boeken-resultaten');
@@ -75,5 +81,52 @@
       performSearch();
     });
     toggleResetButton();
+
+
+    // --- AANPASSING: NIEUW SCRIPT VOOR INLINE EDIT ---
+    document.getElementById('boeken-resultaten').addEventListener('click', (e) => {
+      // Controleer of de klik op een 'edit-btn' was
+      if (e.target.classList.contains('edit-btn')) {
+        const button = e.target;
+        const id = button.dataset.id;
+        const titel = button.dataset.titel;
+        const avi = button.dataset.avi;
+
+        const itemContainer = document.getElementById(`boek-item-${id}`);
+
+        // Vervang de inhoud met een bewerkingsformulier
+        itemContainer.innerHTML = `
+                <form action="/boek/aanpassen/${id}" method="post" class="edit-form">
+                    <input type="text" name="titel" value="${titel}" required>
+                    <input type="text" name="avi_niveau" value="${avi}" required style="width: 100px;">
+                    <div class="actions">
+                        <button type="submit" class="save-btn">Opslaan</button>
+                        <button type="button" class="cancel-btn edit-btn" data-id="${id}" data-titel="${titel}" data-avi="${avi}">Annuleren</button>
+                    </div>
+                </form>
+            `;
+      }
+
+      // Controleer of de klik op een 'cancel-btn' was
+      if (e.target.classList.contains('cancel-btn')) {
+        const button = e.target;
+        const id = button.dataset.id;
+        const titel = button.dataset.titel;
+        const avi = button.dataset.avi;
+
+        const itemContainer = document.getElementById(`boek-item-${id}`);
+
+        // Herstel de originele inhoud
+        itemContainer.innerHTML = `
+                <span class="boek-title">${titel}</span>
+                <div class="actions">
+                    <button class="edit-btn" data-id="${id}" data-titel="${titel}" data-avi="${avi}">Aanpassen</button>
+                    <form action="/boek/verwijderen/${id}" method="post" onsubmit="return confirm('Boek ${titel} verwijderen?');">
+                        <button type="submit" class="delete-sm">X</button>
+                    </form>
+                </div>
+            `;
+      }
+    });
   });
 </script>

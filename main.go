@@ -83,6 +83,7 @@ func main() {
 	app.Get("/boeken", h.ShowBoekenpagina).Name("boeken.index") // Geef de route een naam
 	app.Post("/boek/toevoegen", h.AddBoek)
 	app.Post("/boek/verwijderen/:id", h.DeleteBoek)
+	app.Post("/boek/aanpassen/:id", h.UpdateBoek)
 
 	// Start server en open browser
 	go func() {

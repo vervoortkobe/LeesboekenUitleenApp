@@ -90,6 +90,7 @@ button:hover {
   background-color: #0056b3;
 }
 
+/* Stijlen voor verschillende knop-types */
 .delete,
 .delete-sm {
   background-color: #dc3545;
@@ -104,7 +105,26 @@ button:hover {
   font-size: 0.8em;
 }
 
-/* Bredere input voor boektitel */
+.edit-btn {
+  background-color: #6c757d;
+}
+
+/* Grijze kleur voor Aanpassen/Annuleren */
+.edit-btn:hover {
+  background-color: #5a6268;
+}
+
+.save-btn {
+  background-color: #28a745;
+}
+
+/* Groene kleur voor Opslaan */
+.save-btn:hover {
+  background-color: #218838;
+}
+
+
+/* Bredere input voor boektitel in de toolbar */
 .add-form input[name="titel"] {
   width: 220px;
 }
@@ -134,6 +154,7 @@ button:hover {
 .search-reset:hover {
   color: #333;
 }
+
 
 /* Klassenpagina */
 details {
@@ -172,11 +193,8 @@ summary {
 
 .add-form-inline {
   margin-bottom: 15px;
-  /* Ruimte tussen het formulier en de lijst */
   padding-bottom: 10px;
-  /* Extra ruimte onder het formulier */
   border-bottom: 1px solid #eee;
-  /* Scheidingslijn */
 }
 
 
@@ -187,6 +205,25 @@ summary {
   align-items: center;
   padding: 5px;
 }
+
+.boek-item .actions {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.boek-item form.edit-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+}
+
+.boek-item form.edit-form input[name="titel"] {
+  flex-grow: 1;
+  /* Zorgt ervoor dat het titelveld de beschikbare ruimte vult */
+}
+
 
 /* Leerlingpagina */
 .back-link {
@@ -212,7 +249,6 @@ summary {
   flex-grow: 1;
 }
 
-/* AANPASSING: Extra ruimte (padding) links van de boektitel */
 .lees-lijst .lees-item label {
   padding-left: 10px;
 }
