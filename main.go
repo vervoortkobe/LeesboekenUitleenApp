@@ -34,7 +34,7 @@ func openBrowser(url string) {
 
 func main() {
 	// Database connectie
-	db, err := gorm.Open(sqlite.Open("db/leesapp.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("db/boekendata.db"), &gorm.Config{})
 	if err != nil {
 		panic("DB connectie mislukt")
 	}
@@ -52,26 +52,29 @@ func main() {
 	// Static files (voor CSS/JS)
 	app.Static("/static", "./static")
 
+	// Maak Handler instantie
+	handler := handlers.NewHandler(DB)
+
 	// Routes
-	app.Get("/klassen", handlers.KlassenPagina)
-	app.Post("/klassen", handlers.VoegKlasToe)
-	app.Put("/klassen/:id", handlers.PasKlasAan)
-	app.Delete("/klassen/:id", handlers.VerwijderKlas)
+	app.Get("/klassen", handler.KlassenPagina)
+	app.Post("/klassen", handler.VoegKlasToe)
+	app.Put("/klassen/:id", handler.PasKlasAan)
+	app.Delete("/klassen/:id", handler.VerwijderKlas)
 
-	app.Post("/leerlingen", handlers.VoegLeerlingToe)
-	app.Put("/leerlingen/:id", handlers.PasLeerlingAan)
-	app.Delete("/leerlingen/:id", handlers.VerwijderLeerling)
+	app.Post("/leerlingen", handler.VoegLeerlingToe)
+	app.Put("/leerlingen/:id", handler.PasLeerlingAan)
+	app.Delete("/leerlingen/:id", handler.VerwijderLeerling)
 
-	app.Get("/boeken", handlers.BoekenPagina)
-	app.Post("/niveaus", handlers.VoegNiveauToe)
-	app.Post("/boeken", handlers.VoegBoekToe)
-	app.Put("/boeken/:id", handlers.PasBoekAan)
-	app.Delete("/boeken/:id", handlers.VerwijderBoek)
+	app.Get("/boeken", handler.BoekenPagina)
+	app.Post("/niveaus", handler.VoegNiveauToe)
+	app.Post("/boeken", handler.VoegBoekToe)
+	app.Put("/boeken/:id", handler.PasBoekAan)
+	app.Delete("/boeken/:id", handler.VerwijderBoek)
 
-	app.Get("/leerlingen/:id", handlers.LeerlingDetail)
-	app.Put("/leerlingen/:id/naam", handlers.UpdateLeerlingNaam)
-	app.Post("/leerlingen/:id/leesdata", handlers.VoegLeesDatumToe)
-	app.Put("/leesdata/:id", handlers.PasLeesDatumAan)
+	app.Get("/leerlingen/:id", handler.LeerlingDetail)
+	app.Put("/leerlingen/:id/naam", handler.UpdateLeerlingNaam)
+	app.Post("/leerlingen/:id/leesdata", handler.VoegLeesDatumToe)
+	app.Put("/leesdata/:id", handler.PasLeesDatumAan)
 
 	// Start server en open browser
 	go func() {
