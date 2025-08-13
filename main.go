@@ -52,16 +52,9 @@ func main() {
 		return template.HTML(s)
 	})
 
-	// Initialiseer de database met GORM
 	db := database.InitDatabase("./boekendata.db")
-
-	// Maak de handler aan met de GORM db-verbinding
 	h := &handlers.Handler{DB: db}
-
-	app := fiber.New(fiber.Config{
-		Views: engine,
-	})
-
+	app := fiber.New(fiber.Config{Views: engine})
 	app.Use(logger.New())
 
 	app.Use("/static", filesystem.New(filesystem.Config{
@@ -69,18 +62,25 @@ func main() {
 		PathPrefix: "static",
 	}))
 
-	// --- Routes (deze blijven hetzelfde) ---
-	app.Get("/", h.ShowKlaspagina)
+	// --- Routes met Namen ---
+	app.Get("/", func(c *fiber.Ctx) error {
+		// Stuur direct door naar de genoemde route
+		return c.RedirectToRoute("klassen.index", fiber.Map{})
+	})
 
+	// Klassenpagina en CRUD
+	app.Get("/klassen", h.ShowKlaspagina).Name("klassen.index") // Geef de route een naam
 	app.Post("/klas/toevoegen", h.AddKlas)
 	app.Post("/klas/verwijderen/:id", h.DeleteKlas)
 
+	// Leerling CRUD
 	app.Post("/leerling/toevoegen/:klas_id", h.AddLeerling)
 	app.Post("/leerling/verwijderen/:id", h.DeleteLeerling)
-	app.Get("/leerling/:id", h.ShowLeerlingpagina)
+	app.Get("/leerling/:id", h.ShowLeerlingpagina).Name("leerling.show") // Geef de route een naam
 	app.Post("/leerling/aanpassen/:id", h.UpdateLeerling)
 
-	app.Get("/boeken", h.ShowBoekenpagina)
+	// Boekenpagina en CRUD
+	app.Get("/boeken", h.ShowBoekenpagina).Name("boeken.index") // Geef de route een naam
 	app.Post("/boek/toevoegen", h.AddBoek)
 	app.Post("/boek/verwijderen/:id", h.DeleteBoek)
 

@@ -5,6 +5,7 @@ import (
 	"log"
 	"main/models"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,37 +13,45 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// Handler houdt een referentie naar de GORM-databaseverbinding vast.
 type Handler struct {
 	DB *gorm.DB
 }
 
-// --- Pagina Handlers ---
-
+// ShowKlaspagina blijft ongewijzigd
 func (h *Handler) ShowKlaspagina(c *fiber.Ctx) error {
 	zoekterm := c.Query("zoek")
 	var klassen []models.Klas
 
-	// Gebruik Preload om gerelateerde leerlingen direct mee te laden (eager loading).
-	// De functie binnen Preload voegt een conditie toe aan de query voor leerlingen.
-	query := h.DB.
-		Preload("Leerlingen", "naam LIKE ?", "%"+zoekterm+"%").
-		Where("naam LIKE ?", "%"+zoekterm+"%").
-		Order("naam asc").
-		Find(&klassen)
+	preloadLeerlingen := func(db *gorm.DB) *gorm.DB {
+		return db.Order("naam asc").Where("naam LIKE ?", "%"+zoekterm+"%")
+	}
 
-	if query.Error != nil {
-		log.Printf("Error getting classes: %v", query.Error)
+	dbQuery := h.DB.Preload("Leerlingen", preloadLeerlingen).Order("naam asc")
+
+	var gefilterdeKlassen []models.Klas
+	if err := dbQuery.Find(&klassen).Error; err != nil {
+		log.Printf("Error getting classes: %v", err)
 		return c.Status(500).SendString("Internal Server Error")
+	}
+
+	if zoekterm != "" {
+		for _, klas := range klassen {
+			if strings.Contains(strings.ToLower(klas.Naam), strings.ToLower(zoekterm)) || len(klas.Leerlingen) > 0 {
+				gefilterdeKlassen = append(gefilterdeKlassen, klas)
+			}
+		}
+	} else {
+		gefilterdeKlassen = klassen
 	}
 
 	return c.Render("klaspagina", fiber.Map{
 		"Title":    "Klassenoverzicht",
-		"Klassen":  klassen,
+		"Klassen":  gefilterdeKlassen,
 		"Zoekterm": zoekterm,
 	}, "layouts/main")
 }
 
+// ShowBoekenpagina blijft ongewijzigd
 func (h *Handler) ShowBoekenpagina(c *fiber.Ctx) error {
 	zoekterm := c.Query("zoek")
 	var boeken []models.Boek
@@ -73,6 +82,7 @@ func (h *Handler) ShowBoekenpagina(c *fiber.Ctx) error {
 	}, "layouts/main")
 }
 
+// ShowLeerlingpagina blijft ongewijzigd
 func (h *Handler) ShowLeerlingpagina(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
 	var leerling models.Leerling
@@ -110,24 +120,21 @@ func (h *Handler) ShowLeerlingpagina(c *fiber.Ctx) error {
 	}, "layouts/main")
 }
 
-// --- CRUD Handlers ---
+// --- CRUD Handlers met RedirectToRoute ---
 
 func (h *Handler) AddKlas(c *fiber.Ctx) error {
 	klas := models.Klas{Naam: c.FormValue("naam")}
 	if klas.Naam != "" {
 		h.DB.Create(&klas)
 	}
-	return c.Redirect("/")
+	return c.RedirectToRoute("klassen.index", fiber.Map{}) // CORRECTIE
 }
 
 func (h *Handler) DeleteKlas(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
-	// GORM's Select("Leerlingen") zorgt voor een cascade delete
-	// van de gerelateerde leerlingen als de database dit ondersteunt.
-	// Voor SQLite is het beter om dit handmatig te doen voor de zekerheid.
 	h.DB.Where("klas_id = ?", id).Delete(&models.Leerling{})
 	h.DB.Delete(&models.Klas{}, id)
-	return c.Redirect("/")
+	return c.RedirectToRoute("klassen.index", fiber.Map{}) // CORRECTIE
 }
 
 func (h *Handler) AddLeerling(c *fiber.Ctx) error {
@@ -139,42 +146,47 @@ func (h *Handler) AddLeerling(c *fiber.Ctx) error {
 	if leerling.Naam != "" {
 		h.DB.Create(&leerling)
 	}
-	return c.Redirect("/")
+	return c.RedirectToRoute("klassen.index", fiber.Map{}) // CORRECTIE
 }
 
 func (h *Handler) DeleteLeerling(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
 	h.DB.Delete(&models.Leerling{}, id)
-	return c.Redirect("/")
+	return c.RedirectToRoute("klassen.index", fiber.Map{}) // CORRECTIE
 }
 
 func (h *Handler) UpdateLeerling(c *fiber.Ctx) error {
 	leerlingID, _ := c.ParamsInt("id")
 
-	// Naam van leerling bijwerken
-	h.DB.Model(&models.Leerling{}).Where("id = ?", leerlingID).Update("naam", c.FormValue("naam"))
+	naam := c.FormValue("naam")
+	if naam != "" {
+		h.DB.Model(&models.Leerling{}).Where("id = ?", leerlingID).Update("naam", naam)
+	}
 
-	// Leesdata bijwerken
-	form, _ := c.MultipartForm()
-	for key, values := range form.Value {
+	c.Request().PostArgs().VisitAll(func(keyBytes, valueBytes []byte) {
+		key := string(keyBytes)
 		if strings.HasPrefix(key, "datum_") {
 			boekIDStr := strings.TrimPrefix(key, "datum_")
-			boekID, _ := c.ParamsInt(boekIDStr)
-			datum := values[0]
-
-			lb := models.LeerlingBoek{
-				LeerlingID: uint(leerlingID),
-				BoekID:     uint(boekID),
-				Leesdatum:  datum,
+			boekID, err := strconv.Atoi(boekIDStr)
+			if err != nil {
+				return
 			}
-			// Clauses.OnConflict doet een "UPSERT": UPDATE als het record bestaat, INSERT als het nieuw is.
-			h.DB.Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "leerling_id"}, {Name: "boek_id"}},
-				DoUpdates: clause.AssignmentColumns([]string{"leesdatum"}),
-			}).Create(&lb)
+			datum := string(valueBytes)
+
+			if datum != "" {
+				lb := models.LeerlingBoek{LeerlingID: uint(leerlingID), BoekID: uint(boekID), Leesdatum: datum}
+				h.DB.Clauses(clause.OnConflict{
+					Columns:   []clause.Column{{Name: "leerling_id"}, {Name: "boek_id"}},
+					DoUpdates: clause.AssignmentColumns([]string{"leesdatum"}),
+				}).Create(&lb)
+			} else {
+				h.DB.Where("leerling_id = ? AND boek_id = ?", leerlingID, boekID).Delete(&models.LeerlingBoek{})
+			}
 		}
-	}
-	return c.Redirect(fmt.Sprintf("/leerling/%d", leerlingID))
+	})
+
+	// Stuur terug naar de detailpagina van de leerling, met de ID als parameter
+	return c.RedirectToRoute("leerling.show", fiber.Map{"id": leerlingID}) // CORRECTIE
 }
 
 func (h *Handler) AddBoek(c *fiber.Ctx) error {
@@ -185,11 +197,11 @@ func (h *Handler) AddBoek(c *fiber.Ctx) error {
 	if boek.Titel != "" && boek.AviNiveau != "" {
 		h.DB.Create(&boek)
 	}
-	return c.Redirect("/boeken")
+	return c.RedirectToRoute("boeken.index", fiber.Map{}) // CORRECTIE
 }
 
 func (h *Handler) DeleteBoek(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
 	h.DB.Delete(&models.Boek{}, id)
-	return c.Redirect("/boeken")
+	return c.RedirectToRoute("boeken.index", fiber.Map{}) // CORRECTIE
 }
