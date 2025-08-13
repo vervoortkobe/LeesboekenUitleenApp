@@ -11,7 +11,7 @@
     "#1": {
       "0409": {
         "identity": {
-          "name": "LeesboekenUitleenProject",
+          "name": "LeesboekenUitleenApp",
           "version": "1.0"
         },
         "description": "Deze app maakt het uitlenen van leesboeken voor leerlingen overzichtelijker.",
@@ -43,14 +43,14 @@
           "0409": {
             "Comments": "",
             "CompanyName": "",
-            "FileDescription": "LeesboekenUitleenProject",
+            "FileDescription": "LeesboekenUitleenApp",
             "FileVersion": "1.0.0.0",
-            "InternalName": "LeesboekenUitleenProject",
+            "InternalName": "LeesboekenUitleenApp",
             "LegalCopyright": "none",
             "LegalTrademarks": "",
-            "OriginalFilename": "LeesboekenUitleenProject.exe",
+            "OriginalFilename": "LeesboekenUitleenApp.exe",
             "PrivateBuild": "",
-            "ProductName": "LeesboekenUitleenProject",
+            "ProductName": "LeesboekenUitleenApp",
             "ProductVersion": "1.0.0.0",
             "SpecialBuild": ""
           }
