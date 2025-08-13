@@ -1,20 +1,23 @@
 package main
 
 import (
+	"embed"
+	"html/template"
+	"io/fs"
 	"log"
-	"main/handlers"
-	"main/models"
+	"net/http"
 	"os/exec"
 	"runtime"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html/v2"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-)
+	"main/database"
+	"main/handlers"
 
-var DB *gorm.DB
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/template/html/v2"
+)
 
 // openBrowser opent de standaardbrowser naar de opgegeven URL
 func openBrowser(url string) {
@@ -32,59 +35,65 @@ func openBrowser(url string) {
 	}
 }
 
+//go:embed templates/*
+var templatesFS embed.FS
+
+//go:embed static/*
+var staticFS embed.FS
+
 func main() {
-	// Database connectie
-	db, err := gorm.Open(sqlite.Open("db/boekendata.db"), &gorm.Config{})
+	templateRoot, err := fs.Sub(templatesFS, "templates")
 	if err != nil {
-		panic("DB connectie mislukt")
+		log.Fatal(err)
 	}
-	DB = db
 
-	// Migreer modellen
-	DB.AutoMigrate(&models.Klas{}, &models.Leerling{}, &models.AVINiveau{}, &models.Boek{}, &models.LeesDatum{})
+	engine := html.NewFileSystem(http.FS(templateRoot), ".html")
+	engine.AddFunc("safe", func(s string) template.HTML {
+		return template.HTML(s)
+	})
 
-	// Fiber setup met templates
-	engine := html.New("./public", ".html")
+	// Initialiseer de database met GORM
+	db := database.InitDatabase("./boekendata.db")
+
+	// Maak de handler aan met de GORM db-verbinding
+	h := &handlers.Handler{DB: db}
+
 	app := fiber.New(fiber.Config{
 		Views: engine,
 	})
 
-	// Static files (voor CSS/JS)
-	app.Static("/static", "./static")
+	app.Use(logger.New())
 
-	// Maak Handler instantie
-	handler := handlers.NewHandler(DB)
+	app.Use("/static", filesystem.New(filesystem.Config{
+		Root:       http.FS(staticFS),
+		PathPrefix: "static",
+	}))
 
-	// Routes
-	app.Get("/klassen", handler.KlassenPagina)
-	app.Post("/klassen", handler.VoegKlasToe)
-	app.Put("/klassen/:id", handler.PasKlasAan)
-	app.Delete("/klassen/:id", handler.VerwijderKlas)
+	// --- Routes (deze blijven hetzelfde) ---
+	app.Get("/", h.ShowKlaspagina)
 
-	app.Post("/leerlingen", handler.VoegLeerlingToe)
-	app.Put("/leerlingen/:id", handler.PasLeerlingAan)
-	app.Delete("/leerlingen/:id", handler.VerwijderLeerling)
+	app.Post("/klas/toevoegen", h.AddKlas)
+	app.Post("/klas/verwijderen/:id", h.DeleteKlas)
 
-	app.Get("/boeken", handler.BoekenPagina)
-	app.Post("/niveaus", handler.VoegNiveauToe)
-	app.Post("/boeken", handler.VoegBoekToe)
-	app.Put("/boeken/:id", handler.PasBoekAan)
-	app.Delete("/boeken/:id", handler.VerwijderBoek)
+	app.Post("/leerling/toevoegen/:klas_id", h.AddLeerling)
+	app.Post("/leerling/verwijderen/:id", h.DeleteLeerling)
+	app.Get("/leerling/:id", h.ShowLeerlingpagina)
+	app.Post("/leerling/aanpassen/:id", h.UpdateLeerling)
 
-	app.Get("/leerlingen/:id", handler.LeerlingDetail)
-	app.Put("/leerlingen/:id/naam", handler.UpdateLeerlingNaam)
-	app.Post("/leerlingen/:id/leesdata", handler.VoegLeesDatumToe)
-	app.Put("/leesdata/:id", handler.PasLeesDatumAan)
+	app.Get("/boeken", h.ShowBoekenpagina)
+	app.Post("/boek/toevoegen", h.AddBoek)
+	app.Post("/boek/verwijderen/:id", h.DeleteBoek)
 
 	// Start server en open browser
 	go func() {
 		// Wacht kort om te zorgen dat de server draait
 		<-time.After(500 * time.Millisecond)
-		openBrowser("http://localhost:3000/klassen")
+		openBrowser("http://localhost/")
 	}()
 
 	// Start server
-	if err := app.Listen(":3000"); err != nil {
+	log.Println("Applicatie gestart op http://localhost:80")
+	if err := app.Listen(":80"); err != nil {
 		log.Fatalf("Server starten mislukt: %v", err)
 	}
 }

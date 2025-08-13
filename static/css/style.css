@@ -1,0 +1,180 @@
+/* Eenvoudige styling voor de duidelijkheid */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  background-color: #f4f4f9;
+}
+
+header {
+  background: #333;
+  color: white;
+  padding: 1rem;
+}
+
+header h1 {
+  text-align: center;
+  margin: 0;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1em;
+}
+
+main {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
+}
+
+/* Formulieren en Knoppen */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-form,
+.add-form {
+  display: flex;
+  gap: 5px;
+}
+
+input[type="text"],
+input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button,
+.button-link {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.button-link {
+  display: inline-block;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.delete,
+.delete-sm {
+  background-color: #dc3545;
+}
+
+.delete:hover {
+  background-color: #c82333;
+}
+
+.delete-sm {
+  padding: 2px 6px;
+  font-size: 0.8em;
+}
+
+/* Klassenpagina */
+details {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+summary {
+  font-size: 1.2em;
+  font-weight: bold;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9f9f9;
+}
+
+.klas-content {
+  padding: 10px;
+}
+
+.leerling-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  border-bottom: 1px solid #eee;
+}
+
+.leerling-item a {
+  text-decoration: none;
+  color: #0056b3;
+}
+
+.add-form-inline {
+  margin-top: 10px;
+}
+
+/* Boekenpagina */
+.boek-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+}
+
+/* Leerlingpagina */
+.back-link {
+  display: inline-block;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.update-form .form-group {
+  margin-bottom: 15px;
+}
+
+.lees-lijst .lees-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.lees-lijst label {
+  flex-grow: 1;
+}
+
+.save-button {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  font-size: 1.2em;
+  margin-top: 20px;
+}

@@ -1,0 +1,32 @@
+<a href="/" class="back-link">&larr; Terug naar klassen</a>
+<h2>Details voor {{.Leerling.Naam}}</h2>
+
+<form action="/leerling/aanpassen/{{.Leerling.ID}}" method="post" class="update-form">
+  <div class="form-group">
+    <label for="naam">Naam leerling:</label>
+    <input type="text" id="naam" name="naam" value="{{.Leerling.Naam}}">
+  </div>
+
+  <h3>Gelezen Boeken</h3>
+  <p>Voer een leesdatum in (JJJJ-MM-DD) en klik op 'Opslaan' onderaan de pagina.</p>
+
+  <div class="boeken-container">
+    {{range .AviNiveaus}}
+    <details class="avi-groep" open>
+      <summary>
+        <h4>AVI-niveau: {{.}}</h4>
+      </summary>
+      <div class="lees-lijst">
+        {{range (index $.GroupedBoeken .)}}
+        <div class="lees-item">
+          <label for="datum_{{.ID}}">{{.Titel}}</label>
+          <input type="date" id="datum_{{.ID}}" name="datum_{{.ID}}" value="{{.Leesdatum}}">
+        </div>
+        {{end}}
+      </div>
+    </details>
+    {{end}}
+  </div>
+
+  <button type="submit" class="save-button">Alle Wijzigingen Opslaan</button>
+</form>

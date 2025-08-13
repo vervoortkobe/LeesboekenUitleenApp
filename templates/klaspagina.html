@@ -1,0 +1,50 @@
+<h2>Overzicht Klassen</h2>
+
+<div class="toolbar">
+  <form action="/" method="get" class="search-form">
+    <input type="text" name="zoek" placeholder="Zoek klas of leerling..." value="{{.Zoekterm}}">
+    <button type="submit">Zoek</button>
+    <a href="/" class="button-link">Reset</a>
+  </form>
+  <form action="/klas/toevoegen" method="post" class="add-form">
+    <input type="text" name="naam" placeholder="Nieuwe klasnaam" required>
+    <button type="submit">Klas Toevoegen</button>
+  </form>
+</div>
+
+<div class="klassen-container">
+  {{range .Klassen}}
+  <details class="klas" open>
+    <summary>
+      <span>{{.Naam}} ({{len .Leerlingen}} leerlingen)</span>
+      <div class="actions">
+        <form action="/klas/verwijderen/{{.ID}}" method="post"
+          onsubmit="return confirm('Weet u zeker dat u klas {{.Naam}} en alle leerlingen wilt verwijderen?');">
+          <button type="submit" class="delete">Verwijder Klas</button>
+        </form>
+      </div>
+    </summary>
+    <div class="klas-content">
+      <div class="leerlingen-lijst">
+        {{range .Leerlingen}}
+        <div class="leerling-item">
+          <a href="/leerling/{{.ID}}">{{.Naam}}</a>
+          <form action="/leerling/verwijderen/{{.ID}}" method="post"
+            onsubmit="return confirm('Leerling {{.Naam}} verwijderen?');">
+            <button type="submit" class="delete-sm">X</button>
+          </form>
+        </div>
+        {{else}}
+        <p>Geen leerlingen in deze klas.</p>
+        {{end}}
+      </div>
+      <form action="/leerling/toevoegen/{{.ID}}" method="post" class="add-form-inline">
+        <input type="text" name="naam" placeholder="Nieuwe leerling" required>
+        <button type="submit">Toevoegen</button>
+      </form>
+    </div>
+  </details>
+  {{else}}
+  <p>Geen klassen gevonden. Voeg een nieuwe klas toe om te beginnen.</p>
+  {{end}}
+</div>

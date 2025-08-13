@@ -1,0 +1,37 @@
+<h2>Overzicht Boeken</h2>
+
+<div class="toolbar">
+  <form action="/boeken" method="get" class="search-form">
+    <input type="text" name="zoek" placeholder="Zoek op titel of AVI..." value="{{.Zoekterm}}">
+    <button type="submit">Zoek</button>
+    <a href="/boeken" class="button-link">Reset</a>
+  </form>
+  <form action="/boek/toevoegen" method="post" class="add-form">
+    <input type="text" name="titel" placeholder="Boektitel" required>
+    <input type="text" name="avi_niveau" placeholder="AVI-niveau" required>
+    <button type="submit">Boek Toevoegen</button>
+  </form>
+</div>
+
+<div class="boeken-container">
+  {{range .AviGroepen}}
+  <details class="avi-groep" open>
+    <summary>
+      <h3>AVI-niveau: {{.Niveau}}</h3>
+    </summary>
+    <div class="boeken-lijst">
+      {{range .Boeken}}
+      <div class="boek-item">
+        <span>{{.Titel}}</span>
+        <form action="/boek/verwijderen/{{.ID}}" method="post"
+          onsubmit="return confirm('Boek {{.Titel}} verwijderen?');">
+          <button type="submit" class="delete-sm">X</button>
+        </form>
+      </div>
+      {{end}}
+    </div>
+  </details>
+  {{else}}
+  <p>Geen boeken gevonden. Voeg een nieuw boek toe.</p>
+  {{end}}
+</div>
